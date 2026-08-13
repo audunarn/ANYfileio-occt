@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ANYfileio-occt"
+version = "0.1.0"
+description = "Optional OCCT backend for ANYfileio"
+requires-python = ">=3.11,<3.15"
+license = { file = "LICENSE" }
+authors = [
+  { name = "Audun Arnesen Nyhus", email = "audunarn@gmail.com" },
+]
+dependencies = [
+  "ANYfileio>=0.2,<0.3",
+  "numpy>=1.26",
+  "cadquery-ocp-novtk>=7.9.3.1.1,<7.10",
+]
+
+[project.optional-dependencies]
+geometry = ["ANYgeometry>=0.2.1,<0.3"]
+dev = ["pytest>=8"]
+
+[project.entry-points."anyfileio.backends"]
+occt = "anyfileio_occt.backend:get_backend"
+
+[project.urls]
+Homepage = "https://github.com/audunarn/ANYfileio-occt"
+Repository = "https://github.com/audunarn/ANYfileio-occt"
+Issues = "https://github.com/audunarn/ANYfileio-occt/issues"
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["anyfileio_occt*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+pythonpath = ["src"]
