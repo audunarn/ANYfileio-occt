@@ -22,7 +22,18 @@ def _imports(path: Path) -> set[str]:
 
 
 def test_provider_source_imports_only_stdlib_and_anyfileio() -> None:
-    allowed = {"__future__", "pathlib", "typing", "anyfileio"}
+    allowed = {
+        "__future__",
+        "contextlib",
+        "dataclasses",
+        "importlib",
+        "pathlib",
+        "threading",
+        "types",
+        "typing",
+        "warnings",
+        "anyfileio",
+    }
     for path in sorted(PACKAGE_ROOT.glob("*.py")):
         assert _imports(path) <= allowed, path
         text = path.read_text(encoding="utf-8")
@@ -31,9 +42,13 @@ def test_provider_source_imports_only_stdlib_and_anyfileio() -> None:
         assert "import anygeometry" not in text
 
 
-def test_no_native_geometry_or_future_provider_modules_exist() -> None:
+def test_exact_native_foundation_and_no_future_provider_modules_exist() -> None:
     assert {path.name for path in PACKAGE_ROOT.iterdir()} == {
         "__init__.py",
+        "_binding.py",
+        "_locking.py",
+        "_session.py",
+        "_units.py",
         "backend.py",
     }
     forbidden = {
@@ -42,8 +57,6 @@ def test_no_native_geometry_or_future_provider_modules_exist() -> None:
         "step.py",
         "iges.py",
         "brep.py",
-        "units.py",
-        "locking.py",
         "diagnostics.py",
         "arrays.py",
         "prototypes.py",
