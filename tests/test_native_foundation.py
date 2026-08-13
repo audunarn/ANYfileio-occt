@@ -196,6 +196,7 @@ def test_binding_loader_never_falls_back_to_cadquery(monkeypatch) -> None:
 
 
 def test_global_guard_is_reentrant_and_restores_exact_values() -> None:
+    from anyfileio.cad import CadOperationCancelled
     from anyfileio_occt._locking import _SettingBinding, _global_settings
 
     state: dict[str, object] = {"a": "old-a", "b": ("old", "b")}
@@ -224,7 +225,7 @@ def test_global_guard_is_reentrant_and_restores_exact_values() -> None:
             assert state == {"a": "inner-a", "b": ("outer", "b")}
         assert state == {"a": "outer-a", "b": ("outer", "b")}
     assert state == {"a": "old-a", "b": ("old", "b")}
-    assert len(cancellations) == 7
+    assert len(cancellations) == 8
     assert cancellations[-1] == {"a": "old-a", "b": ("old", "b")}
     assert [item[1:] for item in log if item[0] == "set"] == [
         ("a", "outer-a"),
@@ -234,6 +235,44 @@ def test_global_guard_is_reentrant_and_restores_exact_values() -> None:
         ("b", ("old", "b")),
         ("a", "old-a"),
     ]
+
+    cancelled_state: dict[str, object] = {"a": "old-a", "b": "old-b"}
+    cancelled_sets: list[tuple[str, object]] = []
+    cancelled_checks: list[dict[str, object]] = []
+
+    def cancelled_binding(name: str) -> _SettingBinding:
+        def get() -> object:
+            return cancelled_state[name]
+
+        def set_value(value: object) -> None:
+            cancelled_sets.append((name, value))
+            cancelled_state[name] = value
+
+        return _SettingBinding(name, get, set_value)
+
+    def cancel_before_native_window() -> bool:
+        cancelled_checks.append(dict(cancelled_state))
+        return len(cancelled_checks) == 7
+
+    body_entered = False
+    with pytest.raises(CadOperationCancelled) as caught:
+        with _global_settings(
+            (cancelled_binding("a"), cancelled_binding("b")),
+            {"a": "new-a", "b": "new-b"},
+            cancellation=cancel_before_native_window,
+        ):
+            body_entered = True
+    assert caught.value.code == "cad.operation.cancelled"
+    assert not body_entered
+    assert cancelled_checks[6] == {"a": "new-a", "b": "new-b"}
+    assert cancelled_checks[7] == {"a": "old-a", "b": "old-b"}
+    assert cancelled_sets == [
+        ("a", "new-a"),
+        ("b", "new-b"),
+        ("b", "old-b"),
+        ("a", "old-a"),
+    ]
+    assert cancelled_state == {"a": "old-a", "b": "old-b"}
 
 
 def test_global_guard_serializes_threads_and_unwinds_partial_apply() -> None:

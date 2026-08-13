@@ -105,6 +105,7 @@ def _global_settings(
                     # Register before the call: a setter may mutate and then fail.
                     applied.append((binding, prior))
                     binding.setter(overrides[binding.name])
+            _check_cancellation(cancellation)
             yield
         except BaseException as primary:
             failures = _restore(applied)
