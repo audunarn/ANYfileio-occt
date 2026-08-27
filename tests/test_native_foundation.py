@@ -63,7 +63,7 @@ from anyfileio.cad import CadCapabilities
 from anyfileio_occt.backend import get_backend
 
 backend = get_backend()
-assert anyfileio_occt.__version__ == "0.1.0"
+assert anyfileio_occt.__version__ == "0.1.1"
 assert backend is get_backend()
 assert backend.capabilities == CadCapabilities()
 assert not any(name.split(".")[0] in blocked for name in sys.modules)
