@@ -12,13 +12,13 @@ authors = [
   { name = "Audun Arnesen Nyhus", email = "audunarn@gmail.com" },
 ]
 dependencies = [
-  "ANYfileio>=0.2,<0.3",
+  "ANYfileio>=0.2.1,<0.3",
   "numpy>=1.26",
   "cadquery-ocp-novtk>=7.9.3.1.1,<7.10",
 ]
 
 [project.optional-dependencies]
-geometry = ["ANYgeometry>=0.2.1,<0.3"]
+geometry = ["ANYgeometry>=0.4.1,<0.5"]
 dev = ["pytest>=8"]
 
 [project.entry-points."anyfileio.backends"]

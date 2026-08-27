@@ -361,7 +361,9 @@ def test_global_guard_preserves_primary_and_reports_restore_failure() -> None:
         nonlocal cancellation_calls
         cancellation_calls += 1
         clean_trace.append(f"cancel:{clean_state['value']}")
-        return cancellation_calls == 5
+        # Five checks occur before the guarded body.  Cancel at the cleanup
+        # checkpoint so the body's exception remains primary.
+        return cancellation_calls == 6
 
     clean_setting = _SettingBinding(
         "value", lambda: clean_state["value"], clean_set
