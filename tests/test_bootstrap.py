@@ -78,6 +78,7 @@ def test_license_is_protected_and_metadata_is_minimal() -> None:
     } == {
         ".git",
         ".github",
+        ".gitignore",
         "ECOSYSTEM_GUIDE.md",
         "LICENSE",
         "pyproject.toml",
