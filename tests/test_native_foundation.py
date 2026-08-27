@@ -17,7 +17,7 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE_ROOT = ROOT / "src"
 CORE_SOURCE_ROOT = Path(
-    r"C:\Users\AudunArnesenNyhus\AppData\Local\Temp\codex-anyfileio-cad-artifact\src"
+    os.environ.get("ANYFILEIO_SOURCE_ROOT", ROOT.parent / "ANYfileIO" / "src")
 )
 
 
