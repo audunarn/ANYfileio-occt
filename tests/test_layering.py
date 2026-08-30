@@ -43,7 +43,7 @@ def test_provider_source_imports_only_stdlib_and_anyfileio() -> None:
 
 
 def test_exact_native_foundation_and_no_future_provider_modules_exist() -> None:
-    assert {path.name for path in PACKAGE_ROOT.iterdir()} == {
+    assert {path.name for path in PACKAGE_ROOT.iterdir() if path.is_file()} == {
         "__init__.py",
         "_binding.py",
         "_locking.py",

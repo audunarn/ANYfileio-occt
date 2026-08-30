@@ -40,7 +40,7 @@ class _OcctBootstrapBackend:
     backend_id = "occt"
     protocol_version = 1
     backend_compatibility_version = 1
-    backend_version = "0.1.0"
+    backend_version = "0.1.1"
     capabilities = CadCapabilities()
 
     def read(

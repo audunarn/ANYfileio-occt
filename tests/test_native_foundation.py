@@ -17,7 +17,7 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE_ROOT = ROOT / "src"
 CORE_SOURCE_ROOT = Path(
-    r"C:\Users\AudunArnesenNyhus\AppData\Local\Temp\codex-anyfileio-cad-artifact\src"
+    os.environ.get("ANYFILEIO_SOURCE_ROOT", ROOT.parent / "ANYfileIO" / "src")
 )
 
 
@@ -63,7 +63,7 @@ from anyfileio.cad import CadCapabilities
 from anyfileio_occt.backend import get_backend
 
 backend = get_backend()
-assert anyfileio_occt.__version__ == "0.1.0"
+assert anyfileio_occt.__version__ == "0.1.1"
 assert backend is get_backend()
 assert backend.capabilities == CadCapabilities()
 assert not any(name.split(".")[0] in blocked for name in sys.modules)
@@ -361,7 +361,9 @@ def test_global_guard_preserves_primary_and_reports_restore_failure() -> None:
         nonlocal cancellation_calls
         cancellation_calls += 1
         clean_trace.append(f"cancel:{clean_state['value']}")
-        return cancellation_calls == 5
+        # Five checks occur before the guarded body.  Cancel at the cleanup
+        # checkpoint so the body's exception remains primary.
+        return cancellation_calls == 6
 
     clean_setting = _SettingBinding(
         "value", lambda: clean_state["value"], clean_set

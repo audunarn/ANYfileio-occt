@@ -19,7 +19,7 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE_ROOT = ROOT / "src"
 CORE_SOURCE_ROOT = Path(
-    r"C:\Users\AudunArnesenNyhus\AppData\Local\Temp\codex-anyfileio-cad-artifact\src"
+    os.environ.get("ANYFILEIO_SOURCE_ROOT", ROOT.parent / "ANYfileIO" / "src")
 )
 
 
@@ -46,14 +46,14 @@ def test_project_metadata_and_entry_point_are_frozen() -> None:
     metadata = _metadata()
     project = metadata["project"]
     assert project["name"] == "ANYfileio-occt"
-    assert project["version"] == "0.1.0"
+    assert project["version"] == "0.1.1"
     assert project["requires-python"] == ">=3.11,<3.15"
     assert project["dependencies"] == [
-        "ANYfileio>=0.2,<0.3",
+        "ANYfileio>=0.2.1,<0.3",
         "numpy>=1.26",
         "cadquery-ocp-novtk>=7.9.3.1.1,<7.10",
     ]
-    assert project["optional-dependencies"]["geometry"] == ["ANYgeometry>=0.2.1,<0.3"]
+    assert project["optional-dependencies"]["geometry"] == ["ANYgeometry>=0.4.1,<0.5"]
     assert project["optional-dependencies"]["dev"] == ["pytest>=8"]
     assert project["entry-points"] == {
         "anyfileio.backends": {"occt": "anyfileio_occt.backend:get_backend"}
@@ -73,8 +73,13 @@ def test_license_is_protected_and_metadata_is_minimal() -> None:
     metadata = _metadata()
     assert metadata["project"]["license"] == {"file": "LICENSE"}
     assert "package-data" not in metadata["tool"]["setuptools"]
-    assert {path.name for path in ROOT.iterdir()} == {
+    assert {
+        path.name for path in ROOT.iterdir() if path.name != ".pytest_cache"
+    } == {
         ".git",
+        ".github",
+        ".gitignore",
+        "ECOSYSTEM_GUIDE.md",
         "LICENSE",
         "pyproject.toml",
         "src",
@@ -97,7 +102,7 @@ class Blocker(importlib.abc.MetaPathFinder):
 
 sys.meta_path.insert(0, Blocker())
 import anyfileio_occt
-assert anyfileio_occt.__version__ == "0.1.0"
+assert anyfileio_occt.__version__ == "0.1.1"
 assert not hasattr(anyfileio_occt, "get_backend")
 assert not any(name.split(".")[0] in blocked for name in sys.modules)
 """
@@ -138,7 +143,7 @@ def test_factory_is_singleton_with_exact_identity_and_zero_capabilities() -> Non
     assert first.backend_id == "occt"
     assert first.protocol_version == 1
     assert first.backend_compatibility_version == 1
-    assert first.backend_version == "0.1.0"
+    assert first.backend_version == "0.1.1"
     assert first.capabilities == CadCapabilities()
 
 
