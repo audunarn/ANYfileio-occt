@@ -1,66 +1,20 @@
-"""Static import-boundary checks for the bootstrap provider."""
-
-from __future__ import annotations
-
+"""Static dependency direction and lazy native imports."""
 import ast
 from pathlib import Path
+ROOT=Path(__file__).resolve().parents[1]/'src'/'anyfileio_occt'
 
+def test_native_owner_imports_are_operation_local():
+    for path in ROOT.glob('*.py'):
+        tree=ast.parse(path.read_text())
+        for statement in tree.body:
+            if isinstance(statement,ast.Import):
+                assert not any(a.name.split('.')[0] in {'OCP','anygeometry','cadquery'} for a in statement.names),path
+            if isinstance(statement,ast.ImportFrom):
+                assert (statement.module or '').split('.')[0] not in {'OCP','anygeometry','cadquery'},path
 
-ROOT = Path(__file__).resolve().parents[1]
-PACKAGE_ROOT = ROOT / "src" / "anyfileio_occt"
-
-
-def _imports(path: Path) -> set[str]:
-    tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
-    found: set[str] = set()
-    for node in ast.walk(tree):
-        if isinstance(node, ast.Import):
-            found.update(alias.name.split(".")[0] for alias in node.names)
-        elif isinstance(node, ast.ImportFrom) and node.module:
-            found.add(node.module.split(".")[0])
-    return found
-
-
-def test_provider_source_imports_only_stdlib_and_anyfileio() -> None:
-    allowed = {
-        "__future__",
-        "contextlib",
-        "dataclasses",
-        "importlib",
-        "pathlib",
-        "threading",
-        "types",
-        "typing",
-        "warnings",
-        "anyfileio",
-    }
-    for path in sorted(PACKAGE_ROOT.glob("*.py")):
-        assert _imports(path) <= allowed, path
-        text = path.read_text(encoding="utf-8")
-        assert "import OCP" not in text
-        assert "import cadquery" not in text
-        assert "import anygeometry" not in text
-
-
-def test_exact_native_foundation_and_no_future_provider_modules_exist() -> None:
-    assert {path.name for path in PACKAGE_ROOT.iterdir() if path.is_file()} == {
-        "__init__.py",
-        "_binding.py",
-        "_locking.py",
-        "_session.py",
-        "_units.py",
-        "backend.py",
-    }
-    forbidden = {
-        "document.py",
-        "xde.py",
-        "step.py",
-        "iges.py",
-        "brep.py",
-        "diagnostics.py",
-        "arrays.py",
-        "prototypes.py",
-        "tessellation.py",
-        "geometry_export.py",
-    }
-    assert not forbidden.intersection(path.name for path in PACKAGE_ROOT.iterdir())
+def test_no_owner_private_imports():
+    for path in ROOT.glob('*.py'):
+        for node in ast.walk(ast.parse(path.read_text())):
+            if isinstance(node,ast.ImportFrom) and (node.module or '').startswith('anygeometry'):
+                assert not any(a.name.startswith('_') for a in node.names),path
+                assert not any(p.startswith('_') for p in node.module.split('.')[1:]),path

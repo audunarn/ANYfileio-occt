@@ -65,7 +65,7 @@ from anyfileio_occt.backend import get_backend
 backend = get_backend()
 assert anyfileio_occt.__version__ == "0.1.1"
 assert backend is get_backend()
-assert backend.capabilities == CadCapabilities()
+assert backend.capabilities.tessellate and backend.capabilities.assembly
 assert not any(name.split(".")[0] in blocked for name in sys.modules)
 ''',
         ],
